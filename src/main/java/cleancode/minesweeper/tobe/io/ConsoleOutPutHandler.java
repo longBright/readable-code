@@ -2,11 +2,18 @@ package cleancode.minesweeper.tobe.io;
 
 import cleancode.minesweeper.tobe.GameBoard;
 import cleancode.minesweeper.tobe.GameException;
+import cleancode.minesweeper.tobe.cell.CellSnapShot;
+import cleancode.minesweeper.tobe.cell.CellSnapshotStatus;
 import cleancode.minesweeper.tobe.position.CellPosition;
 import java.util.List;
 import java.util.stream.IntStream;
 
 public class ConsoleOutPutHandler implements OutputHandler {
+
+    private static final String EMPTY_SIGN = "■";
+    private static final String LAND_MINE_SIGN = "☼";
+    private static final String FLAG_SIGN = "⚑";
+    private static final String UNCHECKED_SIGN = "□";
 
     @Override
     public void showGameStartComments() {
@@ -24,10 +31,34 @@ public class ConsoleOutPutHandler implements OutputHandler {
             System.out.printf("%2d  ", row + 1);
             for (int col = 0; col < board.getColSize(); col++) {
                 CellPosition cellPosition = CellPosition.of(row, col);
-                System.out.print(board.getSign(cellPosition) + " ");
+
+                CellSnapShot snapShot = board.getSnapShot(cellPosition);
+                String cellSign = decideCellSignFromSnapshot(snapShot);
+
+                System.out.print(cellSign + " ");
             }
             System.out.println();
         }
+    }
+
+    private String decideCellSignFromSnapshot(CellSnapShot snapShot) {
+        CellSnapshotStatus status = snapShot.getStatus();
+        if (status == CellSnapshotStatus.EMPTY) {
+            return EMPTY_SIGN;
+        }
+        if (status == CellSnapshotStatus.FLAG) {
+            return FLAG_SIGN;
+        }
+        if (status == CellSnapshotStatus.LANDMINE) {
+            return LAND_MINE_SIGN;
+        }
+        if (status == CellSnapshotStatus.NUMBER) {
+            return String.valueOf(snapShot.getNearbyLandMineCount());
+        }
+        if (status == CellSnapshotStatus.UNCHECEKD) {
+            return UNCHECKED_SIGN;
+        }
+        throw new IllegalStateException("확인할 수 없는 셀 입니다.");
     }
 
     private String generateColAlphabets(GameBoard board) {
